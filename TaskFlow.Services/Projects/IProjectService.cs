@@ -10,6 +10,9 @@ public interface IProjectService
         Guid? expectedWorkspaceId,
         string userId);
 
+    // Every project the user can open, across all workspaces.
+    Task<IReadOnlyList<MyProjectItem>> GetMyProjectsAsync(string userId);
+
     Task<ProjectDetails?> GetProjectAsync(
         Guid projectId,
         Guid? expectedTeamId,
