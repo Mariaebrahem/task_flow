@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
+
 namespace TaskFlow.Data.Entities;
 
 public class Attachment
