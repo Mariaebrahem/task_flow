@@ -8,9 +8,11 @@ using TaskFlow.Services.Boards;
 using TaskFlow.Services.Projects;
 using TaskFlow.Services.Security;
 using TaskFlow.Services.Tasks;
+using TaskFlow.Services.Tasks.Assignments;
+using TaskFlow.Services.Tasks.Comments;
 using TaskFlow.Services.Teams;
 using TaskFlow.Services.Workspaces;
-using TaskFlow.Services.Tasks.Assignments;
+
 
 namespace TaskFlow.Web
 {
@@ -43,7 +45,8 @@ namespace TaskFlow.Web
            
             builder.Services.AddScoped<IBoardService, BoardService>();
             builder.Services.AddScoped<ITaskService, TaskService>();
-           builder.Services.AddScoped<ITaskAssignmentService,TaskAssignmentService>();
+            builder.Services.AddScoped<ITaskAssignmentService,TaskAssignmentService>();
+            builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
             // Database Configuration
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
