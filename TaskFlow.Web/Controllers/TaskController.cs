@@ -7,6 +7,7 @@ using TaskFlow.Web.Models.Tasks;
 using System.Security.Claims;
 using TaskFlow.Services.Tasks.Assignments;
 using TaskFlow.Web.Models.Task;
+using TaskFlow.Services.Tasks.Comments;
 using TaskFlow.Services.Tasks.Assignments.Models;
 
 namespace TaskFlow.Web.Controllers;
@@ -16,11 +17,16 @@ public class TaskController : Controller
 {
     private readonly ITaskService _taskService;
     private readonly ITaskAssignmentService _taskAssignmentService;
+    private readonly ITaskCommentService _taskCommentService;
 
-    public TaskController(ITaskService taskService, ITaskAssignmentService taskAssignmentService)
+    public TaskController(
+        ITaskService taskService,
+        ITaskAssignmentService taskAssignmentService,
+        ITaskCommentService taskCommentService)
     {
         _taskService = taskService;
         _taskAssignmentService = taskAssignmentService;
+        _taskCommentService = taskCommentService;
     }
 
     private string? GetCurrentUserId()
@@ -51,7 +57,7 @@ public class TaskController : Controller
     }
 
     // GET: /Task/Details/{id}
-    public async Task<IActionResult> Details(Guid id)
+    public async Task<IActionResult> Details(Guid id, int commentPage = 1)
     {
         var userId = GetCurrentUserId();
 
@@ -62,13 +68,15 @@ public class TaskController : Controller
 
         if (task == null)
             return NotFound();
+
         var assignmentDetails =
-    await _taskAssignmentService.GetAssignmentDetailsAsync(id, userId);
+            await _taskAssignmentService.GetAssignmentDetailsAsync(id, userId);
 
         if (assignmentDetails == null)
             return NotFound();
 
         ViewBag.AssignmentDetails = assignmentDetails;
+        ViewBag.Comments = await _taskCommentService.GetCommentsAsync(id, userId, commentPage);
 
         return View(task);
     }

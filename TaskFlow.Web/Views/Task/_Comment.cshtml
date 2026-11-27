@@ -1,0 +1,86 @@
+﻿@using TaskFlow.Services.Tasks.Comments
+@model (TaskCommentItem Item, TaskCommentList List, Guid TaskId, bool IsReply)
+
+@{
+    var c = Model.Item;
+}
+
+<div class="mb-3">
+    @if (c.IsDeleted)
+    {
+        <p class="text-muted fst-italic mb-1">Comment deleted</p>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between">
+            <strong>@c.AuthorName</strong>
+            <small class="text-muted">
+                <time datetime="@c.CreatedAt.ToString("o")">@c.CreatedAt.ToLocalTime().ToString("g")</time>
+                @if (c.IsEdited)
+                {
+                    <span class="badge bg-light text-dark border">edited</span>
+                }
+            </small>
+        </div>
+
+        <p class="mb-1" style="white-space: pre-wrap;">@c.Content</p>
+
+        <div class="d-flex gap-2 flex-wrap">
+            @if (!Model.IsReply && Model.List.CanComment)
+            {
+                <button class="btn btn-link btn-sm p-0" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#reply-@c.Id">
+                    Reply
+                </button>
+            }
+
+            @if (c.CanEdit)
+            {
+                <button class="btn btn-link btn-sm p-0" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#edit-@c.Id">
+                    Edit
+                </button>
+            }
+
+            @if (c.CanDelete)
+            {
+                <form asp-controller="TaskComment" asp-action="Delete" method="post"
+                      onsubmit="return confirm('Delete this comment?');">
+                    <input type="hidden" name="taskId" value="@Model.TaskId" />
+                    <input type="hidden" name="commentId" value="@c.Id" />
+                    <button class="btn btn-link btn-sm text-danger p-0" type="submit">Delete</button>
+                </form>
+            }
+        </div>
+
+        @if (c.CanEdit)
+        {
+            <div class="collapse mt-2" id="edit-@c.Id">
+                <form asp-controller="TaskComment" asp-action="Edit" method="post">
+                    <input type="hidden" name="taskId" value="@Model.TaskId" />
+                    <input type="hidden" name="commentId" value="@c.Id" />
+                    <label class="visually-hidden" for="editbox-@c.Id">Edit comment</label>
+                    <textarea id="editbox-@c.Id" name="content" class="form-control mb-2"
+                              rows="3" maxlength="5000" required>@c.Content</textarea>
+                    <button class="btn btn-primary btn-sm" type="submit">Save</button>
+                </form>
+            </div>
+        }
+
+        @if (!Model.IsReply && Model.List.CanComment)
+        {
+            <div class="collapse mt-2" id="reply-@c.Id">
+                <form asp-controller="TaskComment" asp-action="Add" method="post">
+                    <input type="hidden" name="taskId" value="@Model.TaskId" />
+                    <input type="hidden" name="parentCommentId" value="@c.Id" />
+                    <label class="visually-hidden" for="replybox-@c.Id">Reply</label>
+                    <textarea id="replybox-@c.Id" name="content" class="form-control mb-2"
+                              rows="2" maxlength="5000" required></textarea>
+                    <button class="btn btn-primary btn-sm" type="submit">Reply</button>
+                </form>
+            </div>
+        }
+    }
+</div>

@@ -1,4 +1,5 @@
-﻿
+﻿@using TaskFlow.Services.Tasks.Comments
+
 @model TaskFlow.Services.Tasks.Models.TaskDetails
 @using TaskFlow.Services.Tasks.Assignments.Models
 
@@ -9,6 +10,7 @@
 <div class="container mt-4">
     @await Component.InvokeAsync("Breadcrumbs", new { boardColumnId = Model.BoardColumnId, current = Model.Title })
 
+ 
     <div class="card shadow-sm">
 
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -205,4 +207,75 @@
 
         </div>
     </div>
+
+    @{
+        var comments = ViewBag.Comments as TaskCommentList;
+    }
+
+    @if (comments != null)
+    {
+        <div class="card shadow-sm mt-4" id="comments">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Comments</h5>
+                <span class="badge bg-secondary">@comments.TotalCount</span>
+            </div>
+
+            <div class="card-body">
+
+                @if (comments.HasOlder)
+                {
+                    <a class="btn btn-outline-secondary btn-sm mb-3"
+                       asp-action="Details"
+                       asp-route-id="@Model.Id"
+                       asp-route-commentPage="@(comments.Page + 1)"
+                       fragment="comments">
+                        Load older comments
+                    </a>
+                }
+
+                @if (comments.Items.Count == 0)
+                {
+                    <p class="text-muted mb-0">No comments yet.</p>
+                }
+
+                @foreach (var c in comments.Items.Where(i => i.ParentCommentId == null))
+                {
+                    @await Html.PartialAsync("_Comment", (c, comments, Model.Id, false))
+
+                    @foreach (var reply in comments.Items.Where(i => i.ParentCommentId == c.Id))
+                    {
+                        <div class="ms-4 border-start ps-3">
+                            @await Html.PartialAsync("_Comment", (reply, comments, Model.Id, true))
+                        </div>
+                    }
+                }
+
+                @if (comments.CanComment)
+                {
+                    <hr />
+                    <form asp-controller="TaskComment" asp-action="Add" method="post">
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+
+                        <div class="mb-2">
+                            <label for="newComment" class="form-label">Add a comment</label>
+                            <textarea id="newComment" name="content" class="form-control"
+                                      rows="3" maxlength="5000" required></textarea>
+                            <div class="form-text">
+                                Up to 5000 characters. Mention someone with @@their-email.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm">Post comment</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0 mt-3">
+                        You have view-only access, so you cannot comment.
+                    </p>
+                }
+            </div>
+        </div>
+    }
 </div>
+
