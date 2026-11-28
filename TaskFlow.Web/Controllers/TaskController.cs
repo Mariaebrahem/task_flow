@@ -8,6 +8,7 @@ using System.Security.Claims;
 using TaskFlow.Services.Tasks.Assignments;
 using TaskFlow.Web.Models.Task;
 using TaskFlow.Services.Tasks.Comments;
+using TaskFlow.Services.Tasks.Checklists;
 using TaskFlow.Services.Tasks.Assignments.Models;
 
 namespace TaskFlow.Web.Controllers;
@@ -18,15 +19,19 @@ public class TaskController : Controller
     private readonly ITaskService _taskService;
     private readonly ITaskAssignmentService _taskAssignmentService;
     private readonly ITaskCommentService _taskCommentService;
+    private readonly IChecklistService _checklistService;
 
     public TaskController(
         ITaskService taskService,
         ITaskAssignmentService taskAssignmentService,
-        ITaskCommentService taskCommentService)
+        ITaskCommentService taskCommentService,
+        IChecklistService checklistService)
+
     {
         _taskService = taskService;
         _taskAssignmentService = taskAssignmentService;
         _taskCommentService = taskCommentService;
+        _checklistService = checklistService;
     }
 
     private string? GetCurrentUserId()
@@ -77,6 +82,7 @@ public class TaskController : Controller
 
         ViewBag.AssignmentDetails = assignmentDetails;
         ViewBag.Comments = await _taskCommentService.GetCommentsAsync(id, userId, commentPage);
+        ViewBag.Checklist = await _checklistService.GetAsync(id, userId);
 
         return View(task);
     }
