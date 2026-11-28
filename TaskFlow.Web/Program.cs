@@ -11,6 +11,7 @@ using TaskFlow.Services.Tasks;
 using TaskFlow.Services.Tasks.Assignments;
 using TaskFlow.Services.Tasks.Checklists;
 using TaskFlow.Services.Tasks.Comments;
+using TaskFlow.Services.Tasks.Subtasks;
 using TaskFlow.Services.Teams;
 using TaskFlow.Services.Workspaces;
 
@@ -49,6 +50,7 @@ namespace TaskFlow.Web
             builder.Services.AddScoped<ITaskAssignmentService,TaskAssignmentService>();
             builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
             builder.Services.AddScoped<IChecklistService, ChecklistService>();
+            builder.Services.AddScoped<ISubtaskService, SubtaskService>();
             // Database Configuration
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
