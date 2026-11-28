@@ -1,6 +1,7 @@
 ﻿@using TaskFlow.Services.Tasks.Comments
 @using TaskFlow.Services.Tasks.Checklists
 @using TaskFlow.Services.Tasks.Subtasks
+@using TaskFlow.Services.Tasks.Labels
 
 @model TaskFlow.Services.Tasks.Models.TaskDetails
 @using TaskFlow.Services.Tasks.Assignments.Models
@@ -211,6 +212,145 @@
     </div>
 
 
+    @{
+        var labels = ViewBag.Labels as TaskLabelsDetails;
+    }
+
+    @if (labels != null)
+    {
+        <div class="card shadow-sm mt-4" id="labels">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Labels</h5>
+                <span class="badge bg-secondary">@labels.SelectedIds.Count</span>
+            </div>
+
+            <div class="card-body">
+
+                @* Chips of the labels on this task *@
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @foreach (var l in labels.Available.Where(a => labels.SelectedIds.Contains(a.Id)))
+                    {
+                        <span class="badge"
+                              style="background-color:@l.Color;color:@l.TextColor"
+                              title="@l.Description">@l.Name</span>
+                    }
+                    @if (labels.SelectedIds.Count == 0)
+                    {
+                        <span class="text-muted">No labels on this task.</span>
+                    }
+                </div>
+
+                @if (labels.CanSetLabels && labels.Available.Count > 0)
+                {
+                    <form asp-controller="TaskLabel" asp-action="Set" method="post">
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+
+                        @foreach (var l in labels.Available)
+                        {
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox"
+                                       name="labelIds" value="@l.Id" id="label-@l.Id"
+                                       checked="@labels.SelectedIds.Contains(l.Id)" />
+                                <label class="form-check-label" for="label-@l.Id">
+                                    <span class="badge"
+                                          style="background-color:@l.Color;color:@l.TextColor">@l.Name</span>
+                                </label>
+                            </div>
+                        }
+
+                        <div class="mt-2">
+                            <button class="btn btn-primary btn-sm" type="submit">Save labels</button>
+                        </div>
+                    </form>
+                }
+                else if (labels.Available.Count == 0)
+                {
+                    <p class="text-muted small mb-0">No labels exist in this workspace yet.</p>
+                }
+
+                @if (labels.CanManageLabels)
+                {
+                    <hr />
+                    <h6>Manage workspace labels</h6>
+
+                    @foreach (var l in labels.Available)
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge flex-grow-1 text-start"
+                                  style="background-color:@l.Color;color:@l.TextColor">@l.Name</span>
+
+                            <button class="btn btn-sm btn-outline-primary" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#label-edit-@l.Id">
+                                Edit
+                            </button>
+
+                            @if (labels.CanDeleteLabels)
+                            {
+                                <form asp-controller="TaskLabel" asp-action="Delete" method="post"
+                                      onsubmit="return confirm('Delete this label from the workspace and from every task?');">
+                                    <input type="hidden" name="taskId" value="@Model.Id" />
+                                    <input type="hidden" name="labelId" value="@l.Id" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                                </form>
+                            }
+                        </div>
+
+                        <div class="collapse mb-3" id="label-edit-@l.Id">
+                            <form asp-controller="TaskLabel" asp-action="Update" method="post">
+                                <input type="hidden" name="taskId" value="@Model.Id" />
+                                <input type="hidden" name="labelId" value="@l.Id" />
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="visually-hidden" for="ln-@l.Id">Name</label>
+                                        <input id="ln-@l.Id" name="name" class="form-control form-control-sm"
+                                               maxlength="100" required value="@l.Name" />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="visually-hidden" for="ld-@l.Id">Description</label>
+                                        <input id="ld-@l.Id" name="description" class="form-control form-control-sm"
+                                               maxlength="500" value="@l.Description" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="visually-hidden" for="lc-@l.Id">Color</label>
+                                        <input id="lc-@l.Id" name="color" type="color"
+                                               class="form-control form-control-color" value="@l.Color" />
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button class="btn btn-sm btn-primary w-100" type="submit">Save</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    }
+
+                    <form asp-controller="TaskLabel" asp-action="Create" method="post" class="mt-2">
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="visually-hidden" for="newLabelName">Label name</label>
+                                <input id="newLabelName" name="name" class="form-control"
+                                       maxlength="100" required placeholder="New label name" />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="visually-hidden" for="newLabelDesc">Description</label>
+                                <input id="newLabelDesc" name="description" class="form-control"
+                                       maxlength="500" placeholder="Description (optional)" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="visually-hidden" for="newLabelColor">Color</label>
+                                <input id="newLabelColor" name="color" type="color"
+                                       class="form-control form-control-color" value="#3B82F6" />
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-primary w-100" type="submit">Add</button>
+                            </div>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    }
     @{
         var checklist = ViewBag.Checklist as ChecklistDetails;
     }

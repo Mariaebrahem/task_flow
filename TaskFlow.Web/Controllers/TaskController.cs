@@ -10,6 +10,7 @@ using TaskFlow.Web.Models.Task;
 using TaskFlow.Services.Tasks.Comments;
 using TaskFlow.Services.Tasks.Subtasks;
 using TaskFlow.Services.Tasks.Checklists;
+using TaskFlow.Services.Tasks.Labels;
 using TaskFlow.Services.Tasks.Assignments.Models;
 
 namespace TaskFlow.Web.Controllers;
@@ -22,13 +23,15 @@ public class TaskController : Controller
     private readonly ITaskCommentService _taskCommentService;
     private readonly IChecklistService _checklistService;
     private readonly ISubtaskService _subtaskService;
+    private readonly ILabelService _labelService;
 
     public TaskController(
         ITaskService taskService,
         ITaskAssignmentService taskAssignmentService,
         ITaskCommentService taskCommentService,
         IChecklistService checklistService,
-        ISubtaskService subtaskService)
+        ISubtaskService subtaskService,
+        ILabelService labelService)
 
     {
         _taskService = taskService;
@@ -36,6 +39,7 @@ public class TaskController : Controller
         _taskCommentService = taskCommentService;
         _checklistService = checklistService;
         _subtaskService = subtaskService;
+        _labelService = labelService;
     }
 
     private string? GetCurrentUserId()
@@ -88,6 +92,7 @@ public class TaskController : Controller
         ViewBag.Comments = await _taskCommentService.GetCommentsAsync(id, userId, commentPage);
         ViewBag.Checklist = await _checklistService.GetAsync(id, userId);
         ViewBag.Subtasks = await _subtaskService.GetAsync(id, userId);
+        ViewBag.Labels = await _labelService.GetForTaskAsync(id, userId);
 
         return View(task);
     }
